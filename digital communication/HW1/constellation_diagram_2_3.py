@@ -1,82 +1,62 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# 1. Base parameters from Question 2
-Ts = 1.0
-A = 1.0 
+# 1. Base parameters
+Ts, A = 1.0, 1.0 
 C_val = (A / 2) * np.sqrt(2 * Ts)
+C_label = r'$\frac{A}{2}\sqrt{2T_s}$'
 
-# Define the symbols as vectors [u1, u2, u3, u4]
 s_vectors = {
-    's1': [1, 1, 0, 0],
-    's3': [1, -1, 0, 0],
-    's2': [0, 0, -1, -1],
-    's4': [0, 0, 1, -1]
+    's1': [1, 1, 0, 0], 's3': [1, -1, 0, 0],
+    's2': [0, 0, -1, -1], 's4': [0, 0, 1, -1]
 }
 
-# 2. Setup the Visualization
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
 
-# Styling constants
-LABEL_FONT = 24
-TITLE_FONT = 26
-POINT_SIZE = 450
-
-def draw_decision_constellation(ax, title, x_label, y_label, points_to_plot, comp_idx, mode='horizontal'):
+def draw_clean_decision_regions(ax, title, x_label, y_label, points, idx, mode):
     limit = C_val * 2.5
     ax.set_xlim(-limit, limit)
     ax.set_ylim(-limit, limit)
     
-    # --- Decision Regions Logic ---
-    if mode == 'horizontal':
-        # Left Plot: S1 (Top half) vs S3 (Bottom half)
-        ax.fill_between([-limit, limit], 0, limit, color='#e3f2fd', alpha=0.6, zorder=0, label='Region S1')
-        ax.fill_between([-limit, limit], -limit, 0, color='#e8f5e9', alpha=0.6, zorder=0, label='Region S3')
+    # --- Decision Regions Mapping ---
+    if mode == 'horizontal_split':
+        # Only horizontal boundary exists (X-axis is the boundary)
+        ax.fill_between([-limit, limit], 0, limit, color='#e3f2fd', alpha=0.6, zorder=0) # Top
+        ax.fill_between([-limit, limit], -limit, 0, color='#e8f5e9', alpha=0.6, zorder=0) # Bottom
+        # Draw ONLY the horizontal boundary bold
+        ax.axhline(0, color='black', lw=4, zorder=2) 
+        ax.axvline(0, color='black', lw=1, alpha=0.3, zorder=1) # Thin reference line
     else:
-        # Right Plot: S2 (Left half) vs S4 (Right half)
-        ax.axvspan(-limit, 0, color='#ffebee', alpha=0.6, zorder=0, label='Region S2')
-        ax.axvspan(0, limit, color='#fffde7', alpha=0.6, zorder=0, label='Region S4')
+        # Only vertical boundary exists (Y-axis is the boundary)
+        ax.axvspan(-limit, 0, color='#ffebee', alpha=0.6, zorder=0) # Left
+        ax.axvspan(0, limit, color='#fffde7', alpha=0.6, zorder=0) # Right
+        # Draw ONLY the vertical boundary bold
+        ax.axvline(0, color='black', lw=4, zorder=2)
+        ax.axhline(0, color='black', lw=1, alpha=0.3, zorder=1) # Thin reference line
 
-    # Draw bold axes
-    ax.axhline(0, color='black', lw=3.5, zorder=2)
-    ax.axvline(0, color='black', lw=3.5, zorder=2)
-    
-    # Set titles and axis labels
-    ax.set_title(title, fontsize=TITLE_FONT, pad=20, fontweight='bold')
-    ax.set_xlabel(x_label, fontsize=LABEL_FONT, loc='right')
-    ax.set_ylabel(y_label, fontsize=LABEL_FONT, loc='top', rotation=0)
+    # Formatting and Points
+    ax.set_title(title, fontsize=26, pad=20, fontweight='bold')
+    ax.set_xlabel(x_label, fontsize=24, loc='right')
+    ax.set_ylabel(y_label, fontsize=24, loc='top', rotation=0)
 
-    # Plot points
-    for name in points_to_plot:
+    for name in points:
         vec = s_vectors[name]
-        x, y = vec[comp_idx[0]] * C_val, vec[comp_idx[1]] * C_val
-        
-        # Draw the black dot
-        ax.scatter(x, y, color='black', s=POINT_SIZE, zorder=5, edgecolor='white', lw=2)
-        
-        # Draw label (S1, S2, etc.)
-        ax.text(x, y + (limit*0.1), name.upper(), fontsize=24, 
-                fontweight='bold', ha='center', zorder=6)
+        x, y = vec[idx[0]] * C_val, vec[idx[1]] * C_val
+        ax.scatter(x, y, color='black', s=500, zorder=5, edgecolor='white', lw=2)
+        ax.text(x, y + (limit*0.1), name.upper(), fontsize=24, fontweight='bold', ha='center')
 
-    # Formatting ticks
-    label_C = r'$\frac{A}{2}\sqrt{2T_s}$'
-    ax.set_xticks([-C_val, 0, C_val])
-    ax.set_xticklabels([f'-{label_C}', '0', label_C], fontsize=16)
-    ax.set_yticks([-C_val, 0, C_val])
-    ax.set_yticklabels([f'-{label_C}', '0', label_C], fontsize=16)
-    
-    ax.grid(True, linestyle=':', alpha=0.4)
+    # Axis Ticks
+    ax.set_xticks([-C_val, 0, C_val]); ax.set_yticks([-C_val, 0, C_val])
+    ax.set_xticklabels([f'-{C_label}', '0', C_label], fontsize=16)
+    ax.set_yticklabels([f'-{C_label}', '0', C_label], fontsize=16)
     ax.set_aspect('equal')
 
-# --- Plot Left: Plane (u1, u2) ---
-# S1 is (C, C), S3 is (C, -C). Decision boundary is the X-axis (u1).
-draw_decision_constellation(ax1, 'Decision Regions: $S_1$ vs $S_3$', '$u_1$', '$u_2$', 
-                            ['s1', 's3'], [0, 1], mode='horizontal')
+# Plotting
+draw_clean_decision_regions(ax1, 'Decision: $S_1$ (Top) vs $S_3$ (Bottom)', '$u_1$', '$u_2$', 
+                            ['s1', 's3'], [0, 1], 'horizontal_split')
 
-# --- Plot Right: Plane (u3, u4) ---
-# S2 is (-C, -C), S4 is (C, -C). Decision boundary is the Y-axis (u4).
-draw_decision_constellation(ax2, 'Decision Regions: $S_2$ vs $S_4$', '$u_3$', '$u_4$', 
-                            ['s2', 's4'], [2, 3], mode='vertical')
+draw_clean_decision_regions(ax2, 'Decision: $S_2$ (Left) vs $S_4$ (Right)', '$u_3$', '$u_4$', 
+                            ['s2', 's4'], [2, 3], 'vertical_split')
 
 plt.tight_layout()
 plt.show()
